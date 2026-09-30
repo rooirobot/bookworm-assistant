@@ -70,7 +70,10 @@ To turn it on: in your repo's **Settings → Actions → General**, allow Action
 - **Page text:** `tagline` and `intro` in `config.json`.
 - **Region:** `audible_store` in `config.json`.
 
+## Contributing
+This is an open project, and collaborators are very welcome, whether you're adding a feature, fixing a bug, or adding one line to `known-editions.md`. Open an issue to talk through an idea, or send a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md) for ideas and how to get started.
+
 ## Credits
-Started as [RooiRobot](https://github.com/RooiRobot)'s personal bookshelf. Contributions to `known-editions.md` are especially welcome.
+Started as [RooiRobot](https://github.com/RooiRobot)'s personal bookshelf.
 
 MIT licensed. Not affiliated with Audible, Amazon, Goodreads, Open Library or Anthropic.
