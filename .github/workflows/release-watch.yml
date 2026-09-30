@@ -1,0 +1,41 @@
+name: Release watch
+
+# Monthly, free: plain Python, no LLM. Opens an issue (which GitHub emails you) when
+# a 🔔 Must know series has news. Run it by hand from the Actions tab at any time.
+on:
+  schedule:
+    - cron: "0 6 1 * *"   # 06:00 UTC on the 1st of every month
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check for release news
+        run: python scripts/release_watch.py
+
+      - name: Open an issue if there's news
+        if: hashFiles('release_report.md') != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create --title "📚 Release watch: $(date +%Y-%m-%d)" --body-file release_report.md
+
+      - name: Save what was checked
+        run: |
+          git config user.name "release-watch[bot]"
+          git config user.email "release-watch@users.noreply.github.com"
+          git add data/release_watch_state.json data/series.csv
+          git diff --cached --quiet || git commit -m "Release watch: update state $(date +%Y-%m-%d)"
+          git push
