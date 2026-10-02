@@ -52,7 +52,7 @@ To turn it on: in your repo's **Settings → Actions → General**, allow Action
 `python scripts/build_share.py` writes `share/bookshelf.html`: your Read books with your ratings and notes (never what you own), a shelf of your 5★ series, filters (rating, finished series, subgenre, tone, pacing, complexity, tags, narrator, listening time), a series view, and an *"If you liked…"* matcher. It's a single self-contained HTML file, so you can host it anywhere. In Claude Code, Claude can publish it as a private claude.ai artifact for you to share.
 
 ## The Reading Hub
-`python scripts/build_hub.py` writes `hub/hub.html`, your private page for deciding what to read next. It has three tabs:
+`python scripts/build_hub.py` writes `hub/hub.html`, your private page for deciding what to read next ([see the demo](https://claude.ai/artifact/X6bh1DKG5tdzMeLv6wCrKK), built from the sample books). It has three tabs:
 - **Discover:** a daily *Tonight's pick* with the cover, a spoiler-free hook and "because you loved X" (with your real rating for X), then every suggestion one at a time. Mark each one *Want it*, *Maybe*, *Not for me* or *Already read*.
 - **Up next:** one card per series with the next unread book, ranked by how much you liked the series so far. Reorder it, push one down, or tap *Might have read this?* for a spoiler-free reminder when you can't remember.
 - **Watchlist:** upcoming releases on a timeline, and how closely to watch each series.
