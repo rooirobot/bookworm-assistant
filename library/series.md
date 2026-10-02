@@ -40,6 +40,8 @@ The Malazan Empire is grinding through a long campaign of conquest, and its next
 
 ## Red Rising
 
-Pierce Brown · 1 of 7 read · 5.0★ avg · ongoing
+Pierce Brown · 1 of 7 read · 5.0★ avg · ongoing · Wishlist
 
 On a terraformed Mars, society is split into rigid colour-coded castes, and Darrow is a Red miner who believes he is toiling to make the planet habitable. After learning how badly his people have been deceived, he is remade to pass as a Gold and sent into the ruling class's ruthless academy to bring it down from inside.
+
+**Coming:** Red God (No release date announced yet.)

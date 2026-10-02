@@ -16,6 +16,7 @@ Use those too. They're great for tracking and social features. This fills gaps t
 | New books in your series | Few do it, and only on one store | A free monthly GitHub Action opens an issue when a series you care about gets a title, date or release, including new books in the same world |
 | Recommendations | Algorithmic | Claude reads your ratings and your own hard filters ("no unfinished series", "no YA") |
 | Sharing | A profile page | A standalone page with filters and an *"If you liked X"* matcher, built from your ratings |
+| Choosing what's next | A long to-read list | A private Reading Hub: a daily pick with a spoiler-free hook, suggestions one at a time, and your queue of series in progress |
 
 ## What you need
 - [Claude Code](https://claude.com/claude-code) and a Claude plan
@@ -31,7 +32,7 @@ Use those too. They're great for tracking and social features. This fills gaps t
    - help you rate unrated books series by series, and interview you for a taste profile
    - ask which series you'd want release alerts for
 3. Say *"next batch"* to research 10 books at a time.
-4. Say *"find me some books for my wishlist"* whenever you want recommendations.
+4. Say *"find me some books for my wishlist"* whenever you want recommendations. They land on your Reading Hub.
 
 ## Cost
 Research uses Claude tokens: roughly **90k tokens per 10 books**. That's why it runs in batches you start yourself. A 200-book library is about 20 batches, spread over as many sessions as you like. Everything else is free: the scripts, the release watch and the page are plain Python with no AI calls.
@@ -50,11 +51,21 @@ To turn it on: in your repo's **Settings → Actions → General**, allow Action
 ## The shareable page
 `python scripts/build_share.py` writes `share/bookshelf.html`: your Read books with your ratings and notes (never what you own), a shelf of your 5★ series, filters (rating, finished series, subgenre, tone, pacing, complexity, tags, narrator, listening time), a series view, and an *"If you liked…"* matcher. It's a single self-contained HTML file, so you can host it anywhere. In Claude Code, Claude can publish it as a private claude.ai artifact for you to share.
 
+## The Reading Hub
+`python scripts/build_hub.py` writes `hub/hub.html`, your private page for deciding what to read next. It has three tabs:
+- **Discover:** a daily *Tonight's pick* with the cover, a spoiler-free hook and "because you loved X" (with your real rating for X), then every suggestion one at a time. Mark each one *Want it*, *Maybe*, *Not for me* or *Already read*.
+- **Up next:** one card per series with the next unread book, ranked by how much you liked the series so far. Reorder it, push one down, or tap *Might have read this?* for a spoiler-free reminder when you can't remember.
+- **Watchlist:** upcoming releases on a timeline, and how closely to watch each series.
+
+In Claude Code, Claude publishes the hub as a private claude.ai artifact. Your clicks are saved there, and Claude reads them back next session and updates your CSVs (adding picks to the wishlist, marking books read). Opened as a plain file, the page works too, but choices only last until a reload.
+
+Covers come from your Audible store via `python scripts/fetch_covers.py`. They're kept local and never committed, because the art belongs to its publishers.
+
 ## Layout
 
 | Path | What's in it |
 |---|---|
-| `data/books.csv` | **Master data.** One row per book. Starts with 10 sample books |
+| `data/books.csv` | **Master data.** One row per book. Starts with 16 sample books |
 | `data/series.csv` | One row per series: count, status, synopsis, watch flag |
 | `data/SCHEMA.md` | Field definitions and the fixed subgenre and tag lists |
 | `config.json` | Your name, Audible store, Goodreads switch, share-page text |
@@ -62,7 +73,9 @@ To turn it on: in your repo's **Settings → Actions → General**, allow Action
 | `.claude/skills/` | `library-import` and `book-research`: how Claude does the work, including `known-editions.md`, a growing list of edition traps |
 | `library/`, `wishlist/upcoming.md` | Generated views (don't edit) |
 | `profile/taste-profile.md` | Your likes, dislikes and hard filters |
-| `wishlist/recommendations.md` | Claude's suggestions |
+| `data/suggestions.csv` | Claude's suggestions for you, shown on the Reading Hub |
+| `data/book_overviews.csv` | Spoiler-free overviews of unread books, for "Might have read this?" |
+| `hub/` | The Reading Hub page (`template.html`) and its built copy |
 | `HANDOFF.md` | Where things stand, so each session picks up where the last left off |
 
 ## Customising
