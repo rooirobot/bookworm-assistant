@@ -1,0 +1,598 @@
+<title>My Reading Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700;800&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Same palette and type as the shareable bookshelf page, so the private hub and the public shelf read as one set.
+   Discover leads with covers: one spotlight pick lit by its own blurred cover art, then shelves of covers. */
+:root{
+  --bg:#eef0f2; --panel:#f8f9fa; --card:#ffffff; --ink:#16181d; --muted:#5b616c; --line:#d6dae0;
+  --rooi:#c3352b; --rooi-soft:#f6dedb; --brass:#a87b22; --brass-soft:#f3e8cf; --ok:#2f7a4a; --ok-soft:#dcefe3;
+  --blue:#2f5985; --blue-soft:#dde7f2; --glow:.3;
+  --f-display:"Alegreya",Georgia,"Times New Roman",serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111317; --panel:#171a1f; --card:#1c1f25; --ink:#e8eaee; --muted:#9aa1ad; --line:#2d323b;
+  --rooi:#f0685a; --rooi-soft:#3a1d1a; --brass:#e0b25a; --brass-soft:#352a14; --ok:#7fd19a; --ok-soft:#18301f;
+  --blue:#8db8e8; --blue-soft:#18273a; --glow:.42;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111317; --panel:#171a1f; --card:#1c1f25; --ink:#e8eaee; --muted:#9aa1ad; --line:#2d323b;
+  --rooi:#f0685a; --rooi-soft:#3a1d1a; --brass:#e0b25a; --brass-soft:#352a14; --ok:#7fd19a; --ok-soft:#18301f;
+  --blue:#8db8e8; --blue-soft:#18273a; --glow:.42;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--f-body)}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:28px 72px;display:grid;gap:22px}
+h1{font:800 clamp(2rem,5vw,2.8rem)/1.05 var(--f-display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1 span{color:var(--rooi)}
+h2{font:700 1.3rem/1.2 var(--f-display);margin:0;text-wrap:balance}
+h3{font:700 1.15rem/1.2 var(--f-display);margin:0;text-wrap:balance}
+.eyebrow{font:500 .72rem var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--rooi)}
+.lede{margin:8px 0 0;color:var(--muted);max-width:66ch}
+.facts{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:12px;font:500 .85rem var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.facts b{color:var(--ink)}
+.sync{display:inline-flex;align-items:center;gap:6px;font:500 .78rem var(--f-mono);color:var(--muted)}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.sync.on i{background:var(--ok)} .sync.ro i{background:var(--brass)}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);flex-wrap:wrap;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:2}
+.tabs button{font:700 1rem var(--f-body);background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:10px 14px;cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--rooi)}
+.tabs button small{font:500 .75rem var(--f-mono);margin-left:4px}
+button:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--rooi);outline-offset:2px}
+
+.panel{display:grid;gap:16px}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.hint{color:var(--muted);font-size:.92rem;margin:0}
+.list{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:7px;min-width:0}
+.row{display:flex;gap:12px;align-items:flex-start}
+.rank{flex:0 0 auto;width:2.1rem;font:800 1.5rem/1 var(--f-display);color:var(--muted);text-align:right;padding-top:2px;font-variant-numeric:tabular-nums}
+.grow{flex:1;min-width:0;display:grid;gap:5px}
+.ttl{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.sub{color:var(--muted);font-size:.92rem}
+.meta{display:flex;flex-wrap:wrap;gap:4px 14px;font:400 .8rem var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.badge{font:500 .7rem var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.b-owned{background:var(--ok-soft);color:var(--ok)} .b-wish{background:var(--blue-soft);color:var(--blue)}
+.b-reading{background:var(--rooi-soft);color:var(--rooi)} .b-pri{background:var(--rooi-soft);color:var(--rooi)}
+.b-track{background:var(--brass-soft);color:var(--brass)}
+.more{font-size:.88rem;color:var(--muted)}
+.why{margin:0;max-width:72ch}
+.warn{margin:0;font-size:.9rem;color:var(--muted);border-left:3px solid var(--brass);padding-left:9px}
+.notes{margin:0;font-size:.88rem;color:var(--muted)}
+.actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.btn{font:700 .82rem var(--f-body);border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:5px 11px;cursor:pointer}
+.btn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.btn.want[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:var(--card)}
+.btn.no[aria-pressed="true"]{background:var(--muted);border-color:var(--muted)}
+.btn:disabled{opacity:.45;cursor:default}
+.icon{width:30px;padding:5px 0;text-align:center}
+.links a{color:var(--blue);font-size:.88rem;margin-right:12px}
+select{font:inherit;font-size:.88rem;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)}
+details.later>summary{cursor:pointer;font-weight:700;color:var(--muted)}
+.empty{color:var(--muted);font-style:italic;margin:0}
+
+/* timeline */
+.timeline{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.tl{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:6px;padding:9px 11px;display:grid;gap:2px;min-width:0}
+.tl.priority{border-left-color:var(--rooi)}
+.tl.past{opacity:.7}
+.tl .d{font:500 .78rem var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.tl .t{font:700 1rem/1.2 var(--f-display)}
+.tl .s{font-size:.82rem;color:var(--muted)}
+.nextbook{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;font-size:.95rem}
+.nextbook .d{font:500 .8rem var(--f-mono);color:var(--rooi)}
+
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font:500 .82rem var(--f-body);border:1px solid var(--line);background:var(--card);color:var(--ink);padding:3px 10px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.fit{color:var(--brass);letter-spacing:.1em}
+.fit .off{color:var(--line)}
+.recall{margin-top:6px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--brass);border-radius:6px;display:grid;gap:8px}
+.flabel{font:500 .7rem var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.cues{margin:0;padding-left:18px;display:grid;gap:2px;font-size:.93rem}
+.marked{font-size:.88rem;color:var(--ok)}
+.linkbtn{background:none;border:0;padding:0;color:var(--blue);text-decoration:underline;cursor:pointer;font:inherit}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);background:var(--ink);color:var(--card);padding:8px 14px;border-radius:6px;font-size:.9rem;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media (max-width:560px){.rank{width:1.5rem;font-size:1.2rem}}
+
+/* ---------- covers (Audible art is square) ---------- */
+.cover{display:block;aspect-ratio:1;width:100%;max-width:100%;border-radius:4px;object-fit:cover;background:var(--panel);
+  box-shadow:0 1px 2px rgb(0 0 0 / .18),0 8px 22px -10px rgb(0 0 0 / .45)}
+.nocover{display:grid;place-items:center;padding:10%;background:linear-gradient(160deg,var(--rooi),var(--brass));color:#fff;
+  font:700 clamp(.7rem,2.4vw,1.1rem)/1.15 var(--f-display);text-align:center;text-wrap:balance;overflow:hidden}
+.qcover{flex:0 0 64px;width:64px}
+
+/* ---------- Discover: spotlight + deck share one "pitch" card ---------- */
+.pitch{position:relative;isolation:isolate;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:10px;
+  display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:26px;padding:26px;align-items:start}
+.pitch::before{content:"";position:absolute;inset:-60px;z-index:-1;background:var(--art) center/cover no-repeat;filter:blur(48px) saturate(1.35);opacity:var(--glow)}
+.pitch.deck{grid-template-columns:minmax(0,280px) minmax(0,1fr)}
+.pitch-body{display:grid;gap:10px;min-width:0}
+.pitch-title{font:800 clamp(1.7rem,4.4vw,2.5rem)/1.02 var(--f-display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.hook{margin:2px 0 0;font:italic 500 clamp(1.12rem,2.6vw,1.38rem)/1.4 var(--f-display);max-width:46ch;text-wrap:pretty}
+.because{margin:0;font-size:.98rem}
+.because b{font-weight:700}
+.stars{color:var(--brass);letter-spacing:.06em;white-space:nowrap}
+.facts-row{display:flex;flex-wrap:wrap;gap:6px}
+.fact{font:500 .76rem var(--f-mono);padding:3px 8px;border-radius:999px;background:color-mix(in srgb,var(--panel) 80%,transparent);border:1px solid var(--line);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.small-why{margin:0;font-size:.9rem;color:var(--muted);max-width:68ch}
+.pitch .actions{margin-top:4px}
+.btn.big{font-size:.95rem;padding:9px 16px;border-radius:8px}
+.btn.primary{background:var(--rooi);border-color:var(--rooi);color:#fff}
+.btn.primary[aria-pressed="true"]{background:var(--ok);border-color:var(--ok)}
+.pitch-enter{animation:pitchIn .35s ease-out}
+@keyframes pitchIn{from{transform:translateX(18px);opacity:.35}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.pitch-enter{animation:none}}
+@media (max-width:640px){
+  .pitch,.pitch.deck{grid-template-columns:1fr;padding:18px;gap:16px}
+  .pitch-cover{max-width:200px}
+}
+.deckbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.progress{font:500 .82rem var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.pips{display:flex;gap:3px;flex-wrap:wrap;max-width:100%}
+.pips i{width:14px;height:4px;border-radius:2px;background:var(--line)}
+.pips i.on{background:var(--rooi)}
+
+/* ---------- cover shelves ---------- */
+.shelf{display:grid;grid-auto-flow:column;grid-auto-columns:132px;gap:14px;overflow-x:auto;padding:4px 2px 12px;scroll-snap-type:x proximity;margin:0;list-style:none}
+.shelf.small{grid-auto-columns:104px}
+.shelf>li{scroll-snap-align:start;min-width:0}
+.tile{display:grid;gap:6px;background:none;border:0;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer;width:100%}
+.tile:hover .cover{transform:translateY(-3px)}
+.tile .cover{transition:transform .15s ease}
+.tile-t{font:700 .92rem/1.2 var(--f-display);text-wrap:balance}
+.tile-s{font-size:.8rem;color:var(--muted);line-height:1.3}
+.done-note{display:grid;gap:6px;padding:22px;border:1px dashed var(--line);border-radius:10px;color:var(--muted)}
+details.browse>summary{cursor:pointer;font:700 1.05rem var(--f-display);color:var(--ink)}
+details.browse[open]>summary{margin-bottom:12px}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="eyebrow">Private</div>
+    <h1>Reading <span>Hub</span></h1>
+    <p class="lede">Something new to start tonight, the series you're partway through, and what's coming out. Your choices save as you click, and Claude reads them back to update the bookshelf.</p>
+    <div class="facts" id="facts"></div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Hub sections">
+    <button role="tab" id="t-sugg" aria-controls="p-sugg" aria-selected="true">Discover <small id="n-sugg"></small></button>
+    <button role="tab" id="t-queue" aria-controls="p-queue" aria-selected="false">Up next <small id="n-queue"></small></button>
+    <button role="tab" id="t-watch" aria-controls="p-watch" aria-selected="false">Watchlist <small id="n-watch"></small></button>
+  </nav>
+
+  <section class="panel" id="p-sugg" role="tabpanel" aria-labelledby="t-sugg"></section>
+  <section class="panel" id="p-queue" role="tabpanel" aria-labelledby="t-queue" hidden></section>
+  <section class="panel" id="p-watch" role="tabpanel" aria-labelledby="t-watch" hidden></section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const DATA = {"built":"2026-10-02","queue":[{"key":"the-kingkiller-chronicle","series":"The Kingkiller Chronicle","author":"Patrick Rothfuss","standalone":false,"status":"ongoing","total":"3","read":1,"avg":5.0,"author_avg":5.0,"tier":"reading","score":1000,"synopsis":"A quiet innkeeper in a remote village turns out to be Kvothe, a figure of legend, and he agrees to tell a travelling scribe the true story of his life. Over three days he recounts his childhood among travelling performers, years of survival on city streets, and his hunger to study at the University.","next":{"overview":"Kvothe continues his story: life at the University grows dangerous, so he leaves to seek a noble patron, and his search for the Chandrian takes him far from home.","cues":["The court of Maer Alveron","a journey to Ademre and the Lethani","the Fae realm","Denna and the mysterious Master Ash"],"id":"014","title":"The Wise Man's Fear","cover":"covers/B007Q37QD8.jpg","no":"2","status":"Reading","narrator":"Rupert Degas","hours":"42.8","year":"2011","audible":"https://www.audible.com/pd/B007Q37QD8","goodreads":"https://www.goodreads.com/book/show/1215032.The_Wise_Man_s_Fear","rating":"4.8","subgenre":"Epic Fantasy","notes":""},"more":[]},{"key":"the-stormlight-archive","series":"The Stormlight Archive","author":"Brandon Sanderson","standalone":false,"status":"ongoing","total":"5","read":1,"avg":5.0,"author_avg":4.8,"tier":"continue","score":599.9,"synopsis":"On the storm-battered world of Roshar, a surgeon's son turned slave soldier, a young scholar with a secret, and a warlord troubled by visions are pulled into a long war on the Shattered Plains. Ancient oaths and bonds with spren are stirring again, hinting that the legendary Knights Radiant, and the catastrophe they once fought, may be returning.","next":{"overview":"Kaladin builds Bridge Four into something more while Shallan travels to the Shattered Plains to chase an ancient secret, and the war camps edge toward a decisive expedition.","cues":["Shallan's past told in flashbacks","Kaladin training his men","the Shattered Plains and the chasms","highstorms"],"id":"011","title":"Words of Radiance","cover":"covers/B00HWF0MHW.jpg","no":"2","status":"Wishlist","narrator":"","hours":"48.2","year":"2014","audible":"https://www.audible.com/pd/B00HWF0MHW","goodreads":"https://www.goodreads.com/book/show/17332218-words-of-radiance","rating":"4.9","subgenre":"Epic Fantasy","notes":""},"more":[]},{"key":"the-first-law","series":"The First Law","author":"Joe Abercrombie","standalone":false,"status":"complete","total":"3","read":1,"avg":5.0,"author_avg":5.0,"tier":"continue","score":599.9,"synopsis":"In a brutal world of failing kingdoms, a weary Northern barbarian, a crippled torturer serving the crown and a vain young officer are drawn into the schemes of an ancient, manipulative wizard. As war threatens on two borders, none of them is the hero they might seem.","next":{"overview":"Glokta is sent to hold a besieged southern city, while Logen, Ferro and Jezal travel to the edge of the world with Bayaz in search of an ancient relic.","cues":["The city of Dagoska under siege","a journey across a ruined empire","the Dogman's crew fighting in the North","Glokta's dry inner voice"],"id":"013","title":"Before They Are Hanged","cover":"covers/B014LL69TO.jpg","no":"2","status":"Wishlist","narrator":"","hours":"22.6","year":"2007","audible":"https://www.audible.com/pd/B014LL69TO","goodreads":"https://www.goodreads.com/book/show/902715.Before_They_Are_Hanged","rating":"4.8","subgenre":"Grimdark","notes":""},"more":[]},{"key":"red-rising","series":"Red Rising","author":"Pierce Brown","standalone":false,"status":"ongoing","total":"7","read":1,"avg":5.0,"author_avg":5.0,"tier":"continue","score":599.9,"synopsis":"On a terraformed Mars, society is split into rigid colour-coded castes, and Darrow is a Red miner who believes he is toiling to make the planet habitable. After learning how badly his people have been deceived, he is remade to pass as a Gold and sent into the ruling class's ruthless academy to bring it down from inside.","next":{"overview":"Darrow has risen high among the Golds he means to destroy, but the politics of the Society turn against him as he tries to keep his rebellion alive.","cues":["Darrow as a lancer of House Augustus","space battles and political betrayal","the Jackal","Mustang"],"id":"015","title":"Golden Son","cover":"covers/B00R6S1RCY.jpg","no":"2","status":"Wishlist","narrator":"","hours":"19.1","year":"2015","audible":"https://www.audible.com/pd/B00R6S1RCY","goodreads":"https://www.goodreads.com/book/show/18966819-golden-son","rating":"4.8","subgenre":"Science Fiction","notes":""},"more":[]},{"key":"the-dresden-files","series":"The Dresden Files","author":"Jim Butcher","standalone":false,"status":"ongoing","total":"18","read":1,"avg":4.0,"author_avg":4.0,"tier":"continue","score":589.9,"synopsis":"Harry Dresden is Chicago's only openly practising wizard, scraping by as a private investigator who consults for the police on crimes nobody else can explain. His first case pits him against a killer using black magic, while the wizards' council watches him for any slip.","next":{"overview":"Harry Dresden, Chicago's only wizard for hire, is broke and back on a police case when a string of brutal killings under the full moon points to more than one kind of werewolf.","cues":["Several different types of werewolf","Murphy and Special Investigations","a full-moon killing spree"],"id":"012","title":"Fool Moon","cover":"covers/B002V1BII4.jpg","no":"2","status":"Owned – Unread","narrator":"James Marsters","hours":"10.1","year":"2001","audible":"https://www.audible.com/pd/B002V1BII4","goodreads":"https://www.goodreads.com/book/show/91477.Fool_Moon","rating":"4.6","subgenre":"Urban Fantasy","notes":""},"more":[]}],"watch":[{"key":"the-stormlight-archive","series":"The Stormlight Archive","author":"Brandon Sanderson","level":"priority","status":"ongoing","total":"5","read":1,"avg":5.0,"next":[],"notes":"5 published; 10 planned in two five-book arcs. No book 6 title or date announced as of 2026-09; Sanderson is on a planned break from the series."},{"key":"red-rising","series":"Red Rising","author":"Pierce Brown","level":"wishlist","status":"ongoing","total":"7","read":1,"avg":5.0,"next":[{"title":"Red God","no":"7","date":"","notes":"No release date announced yet.","audible":""}],"notes":""}],"timeline":[],"worlds":[],"suggestions":[{"key":"powder-mage","lens":"new-author","series":"The Powder Mage Trilogy","author":"Brian McClellan","first_title":"Promise of Blood","books":"3","series_status":"complete","span":"2013–2015","subgenre":"Flintlock / Steampunk","hook":"The field marshal has just executed the king. Now mages who snort gunpowder have to hold a country together while a god stirs.","because":"Mistborn","why":"A coup, gunpowder-snorting mages and a detective chasing a conspiracy: hard magic in the Sanderson mould (McClellan was his student) with grittier politics. Sample suggestion.","watch_out":"","narrator":"Christian Rodska","asin":"B00C2DMXCG","audible_rating":"4.5","audible_count":"7261","fit":"5","added":"2026-10-02","decision":"","notes":"","audible":"https://www.audible.com/pd/B00C2DMXCG","cover":"covers/B00C2DMXCG.jpg","because_avg":4.7},{"key":"the-expanse","lens":"new-author","series":"The Expanse","author":"James S. A. Corey","first_title":"Leviathan Wakes","books":"9","series_status":"complete","span":"2011–2021","subgenre":"Science Fiction","hook":"An ice-hauler crew answers a distress call and a burnt-out cop on Ceres hunts for a missing heiress. Both trails lead to the same secret.","because":"Red Rising","why":"A solar-system-wide political thriller with a found-family crew at its heart, for the Red Rising side of your taste. Sample suggestion.","watch_out":"","narrator":"Jefferson Mays","asin":"B073H9PF2D","audible_rating":"4.7","audible_count":"34143","fit":"4","added":"2026-10-02","decision":"","notes":"","audible":"https://www.audible.com/pd/B073H9PF2D","cover":"covers/B073H9PF2D.jpg","because_avg":5.0},{"key":"licanius","lens":"narrator","series":"The Licanius Trilogy","author":"James Islington","first_title":"The Shadow of What Was Lost","books":"3","series_status":"complete","span":"2014–2019","subgenre":"Epic Fantasy","hook":"Davian can tell when anyone lies, and that gift marks him for death. An old evil is waking that only people like him can stop.","because":"The Stormlight Archive","why":"Michael Kramer, the Stormlight and Wheel of Time narrator, reads a big epic that ends in a carefully planned twist. Finished trilogy. Sample suggestion.","watch_out":"Book 1 leans on familiar tropes before the twists start.","narrator":"Michael Kramer","asin":"B00S5AAHLY","audible_rating":"4.6","audible_count":"25194","fit":"5","added":"2026-10-02","decision":"","notes":"","audible":"https://www.audible.com/pd/B00S5AAHLY","cover":"covers/B00S5AAHLY.jpg","because_avg":5.0},{"key":"the-band","lens":"track","series":"The Band","author":"Nicholas Eames","first_title":"Kings of the Wyld","books":"2 of 3","series_status":"ongoing","span":"2017–","subgenre":"Heroic Fantasy","hook":"Clay's old band of monster-slaying mercenaries gets back together for one last tour, straight through a forest full of things that want them dead.","because":"The First Law","why":"Retired mercenaries get the old band back together like a rock tour. Funny, warm and still bloody. Sample suggestion.","watch_out":"Book 3, Outlaw Empire, is due in 2026 with no exact date.","narrator":"Jeff Harding","asin":"B01N23F5TG","audible_rating":"4.5","audible_count":"401","fit":"4","added":"2026-10-02","decision":"","notes":"","audible":"https://www.audible.com/pd/B01N23F5TG","cover":"covers/B01N23F5TG.jpg","because_avg":5.0}],"counts":{"read":10,"books":16}};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const TODAY = new Date().toISOString().slice(0, 10);
+const coverImg = (src, title) => src ? `<img class="cover" src="${esc(src)}" alt="" loading="lazy">`
+  : `<div class="cover nocover" aria-hidden="true"><span>${esc(title)}</span></div>`;
+
+/* ---------- saved state (artifact database) ---------- */
+const decisions = {};          // key -> {choice | level, at}
+let savedOrder = null;         // array of queue keys
+let db = null, mode = "local"; // local | on | ro
+let orderTimer = null;
+
+function setMode(m) {
+  mode = m;
+  const label = {on: "Choices save automatically", ro: "Read-only view: choices won't save", local: "Saving unavailable here: choices last until you reload"}[m];
+  $("#sync").className = "sync " + m;
+  $("#sync").lastChild.textContent = " " + label;
+}
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("show"), 1600);
+}
+async function save(key, body, msg) {
+  decisions[key] = {...body, at: new Date().toISOString()};
+  render();
+  if (!db || mode === "ro") { if (msg) toast(msg); return; }
+  try { await db.collection("decisions").doc(key).set(decisions[key]); toast(msg || "Saved"); }
+  catch (e) { if (e && e.code === "invalid_argument") setMode("ro"); else toast("Couldn't save, try again"); }
+}
+async function clearDecision(key) {
+  delete decisions[key];
+  render();
+  if (!db || mode === "ro") return;
+  try { await db.collection("decisions").doc(key).delete(); toast("Saved"); } catch (e) { toast("Couldn't save, try again"); }
+}
+function saveOrder(ids) {
+  savedOrder = ids; render();
+  if (!db || mode === "ro") return;
+  clearTimeout(orderTimer);
+  orderTimer = setTimeout(async () => {
+    try { await db.doc("queue/order").set({ids: savedOrder, at: new Date().toISOString()}); toast("Order saved"); }
+    catch (e) { if (e && e.code === "invalid_argument") setMode("ro"); }
+  }, 700);
+}
+
+/* ---------- tabs ---------- */
+const TABS = ["sugg", "queue", "watch"];
+function showTab(name) {
+  for (const t of TABS) {
+    $("#t-" + t).setAttribute("aria-selected", t === name);
+    $("#p-" + t).hidden = t !== name;
+  }
+  try { localStorage.setItem("hub-tab2", name); } catch (e) {}
+}
+for (const t of TABS) $("#t-" + t).addEventListener("click", () => showTab(t));
+
+/* ---------- Up next ---------- */
+function queueOrder() {
+  const items = DATA.queue.filter(q => q.tier !== "reading");
+  if (!savedOrder) return items;
+  const pos = new Map(savedOrder.map((k, i) => [k, i]));
+  const known = items.filter(q => pos.has(q.key)).sort((a, b) => pos.get(a.key) - pos.get(b.key));
+  return known.concat(items.filter(q => !pos.has(q.key)));
+}
+function bookBadge(st) {
+  if (st === "Reading") return '<span class="badge b-reading">Reading</span>';
+  if (st === "Owned – Unread") return '<span class="badge b-owned">Owned</span>';
+  return '<span class="badge b-wish">Wishlist</span>';
+}
+/* "Might have read this?": open recall panels, keyed by book id (not saved). */
+const recallOpen = new Set();
+const isRead = id => decisions["b:" + id]?.choice === "read";
+function speak(text) {
+  if (!("speechSynthesis" in window)) { toast("Read-aloud isn't available in this browser"); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text); u.rate = 0.98;
+  speechSynthesis.speak(u);
+}
+function stopSpeaking() { if ("speechSynthesis" in window) speechSynthesis.cancel(); }
+function recallPanel(b) {
+  if (!recallOpen.has(b.id)) return "";
+  const ov = b.overview || "No overview written for this book yet.";
+  return `<div class="recall" id="recall-${esc(b.id)}">
+    <div class="eyebrow">Spoiler-free overview</div>
+    <p class="why">${esc(ov)}</p>
+    ${b.cues.length ? `<div class="flabel">Memory cues</div><ul class="cues">${b.cues.map(c => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}
+    <div class="meta">${b.year ? `<span>Published ${esc(b.year)}</span>` : ""}${b.hours ? `<span>${esc(b.hours)} h audio</span>` : ""}${b.narrator ? `<span>🎧 ${esc(b.narrator)}</span>` : ""}</div>
+    <div class="actions">
+      <button class="btn" data-speak="${esc(b.id)}">🔊 Read aloud</button>
+      <button class="btn want" data-read="${esc(b.id)}">Yes, I've read it</button>
+      <button class="btn" data-unread="${esc(b.id)}">No, still to read</button>
+    </div></div>`;
+}
+function queueCard(q, i, n, fixed) {
+  const chain = [q.next, ...q.more];
+  const doneNow = chain.filter(x => isRead(x.id));
+  const b = chain.find(x => !isRead(x.id));
+  const later = !fixed && decisions["q:" + q.key]?.choice === "later";
+  const head = q.standalone ? esc(q.next.title) : esc(q.series);
+  const undo = doneNow.length ? `<div class="marked">Marked read: ${doneNow.map(x => `${esc(x.title)} <button class="linkbtn" data-undo="${esc(x.id)}">undo</button>`).join(" · ")} <span class="sub">(Claude will update it and ask for a rating)</span></div>` : "";
+  if (!b) {
+    return `<li class="card"><div class="row"><div class="rank">✓</div><div class="grow">
+      <div class="ttl"><h3>${head}</h3><span class="badge b-owned">All read</span></div>
+      <div class="sub">${esc(q.author)}</div>${undo}</div></div></li>`;
+  }
+  const rest = chain.slice(chain.indexOf(b) + 1).filter(x => !isRead(x.id));
+  const book = q.standalone ? "" : `<div class="sub">Next: ${b.no ? "Book " + esc(b.no) + " · " : ""}<b>${esc(b.title)}</b></div>`;
+  const readCount = q.read + doneNow.length;
+  const prog = q.standalone ? "Standalone"
+    : `${readCount} of ${esc(q.total || "?")} read` + (q.avg ? ` · your avg ${q.avg}★` : "") + (q.status ? ` · ${esc(q.status)}` : "");
+  const audio = [b.narrator && "🎧 " + esc(b.narrator), b.hours && esc(b.hours) + " h", b.rating && "Audible " + esc(b.rating) + "★"].filter(Boolean).join(" · ");
+  const more = rest.length ? `<div class="more">Then: ${rest.slice(0, 4).map(m => esc(m.title)).join(", ")}${rest.length > 4 ? ` and ${rest.length - 4} more` : ""}</div>` : "";
+  const why = q.tier === "continue" ? "You've started this series" : q.tier === "owned" ? "Already in your library" : (q.author_avg ? `You rate ${esc(q.author)} ${q.author_avg}★ on average` : "On your wishlist");
+  const links = [b.audible && `<a href="${esc(b.audible)}" target="_blank" rel="noopener">Audible</a>`, b.goodreads && `<a href="${esc(b.goodreads)}" target="_blank" rel="noopener">Goodreads</a>`].filter(Boolean).join("");
+  const move = later || fixed ? "" : `<button class="btn icon" data-up="${esc(q.key)}" aria-label="Move up" ${i === 0 ? "disabled" : ""}>↑</button>
+      <button class="btn icon" data-down="${esc(q.key)}" aria-label="Move down" ${i === n - 1 ? "disabled" : ""}>↓</button>`;
+  const open = recallOpen.has(b.id);
+  return `<li class="card"><div class="row">
+    <div class="rank">${later || fixed ? "–" : i + 1}</div>
+    <div class="qcover">${coverImg(b.cover, b.title)}</div>
+    <div class="grow">
+      <div class="ttl"><h3>${head}</h3>${bookBadge(b.status)}</div>
+      <div class="sub">${esc(q.author)}</div>
+      ${book}
+      <div class="meta"><span>${prog}</span>${audio ? `<span>${audio}</span>` : ""}<span>${why}</span></div>
+      ${more}${undo}
+      <div class="actions">${move}
+        <button class="btn" data-recall="${esc(b.id)}" aria-expanded="${open}" aria-controls="recall-${esc(b.id)}">${open ? "Hide overview" : "Might have read this?"}</button>
+        ${fixed ? "" : `<button class="btn" data-later="${esc(q.key)}" aria-pressed="${later}">${later ? "Back in queue" : "Not now"}</button>`}
+        <span class="links">${links}</span></div>
+      ${recallPanel(b)}
+    </div></div></li>`;
+}
+function findBook(id) {
+  for (const q of DATA.queue) for (const x of [q.next, ...q.more]) if (x.id === id) return x;
+}
+function renderQueue() {
+  const reading = DATA.queue.filter(q => q.tier === "reading");
+  const items = queueOrder();
+  const active = items.filter(q => decisions["q:" + q.key]?.choice !== "later");
+  const later = items.filter(q => decisions["q:" + q.key]?.choice === "later");
+  const picked = DATA.suggestions.filter(s => decisions["s:" + s.key]?.choice === "want");
+  $("#n-queue").textContent = active.length;
+  $("#p-queue").innerHTML = `
+    ${reading.length ? `<div class="section-head"><h2>Reading now</h2></div><ul class="list">${reading.map(q => queueCard(q, 0, 1, true)).join("")}</ul>` : ""}
+    <div class="section-head"><h2>Your queue</h2><p class="hint">One card per series, showing the next book. Use ↑ ↓ to reorder. Not sure you've read one? Tap "Might have read this?" for a spoiler-free reminder.</p></div>
+    <ol class="list">${active.map((q, i) => queueCard(q, i, active.length)).join("")}</ol>
+    ${picked.length ? `<div class="section-head"><h2>Picked from suggestions</h2><p class="hint">Claude adds these to your list next session.</p></div>
+      <ul class="list">${picked.map(s => `<li class="card"><div class="ttl"><h3>${esc(s.series)}</h3><span class="badge b-wish">To add</span></div>
+      <div class="sub">${esc(s.author)} · start with <b>${esc(s.first_title)}</b></div></li>`).join("")}</ul>` : ""}
+    ${later.length ? `<details class="later"><summary>Not now (${later.length})</summary><ul class="list" style="margin-top:10px">${later.map((q, i) => queueCard(q, i, later.length)).join("")}</ul></details>` : ""}`;
+}
+$("#p-queue").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const ids = queueOrder().filter(q => decisions["q:" + q.key]?.choice !== "later").map(q => q.key);
+  const all = queueOrder().map(q => q.key);
+  const swap = (k, d) => {
+    const i = ids.indexOf(k), j = i + d; if (i < 0 || j < 0 || j >= ids.length) return;
+    const a = all.indexOf(ids[i]), c = all.indexOf(ids[j]);
+    [all[a], all[c]] = [all[c], all[a]]; saveOrder(all);
+  };
+  const d = b.dataset;
+  if (d.up) swap(d.up, -1);
+  else if (d.down) swap(d.down, 1);
+  else if (d.later) {
+    const k = "q:" + d.later;
+    decisions[k]?.choice === "later" ? clearDecision(k) : save(k, {choice: "later"});
+  } else if (d.recall) {
+    recallOpen.has(d.recall) ? (recallOpen.delete(d.recall), stopSpeaking()) : recallOpen.add(d.recall);
+    renderQueue();
+    if (recallOpen.has(d.recall)) document.getElementById("recall-" + d.recall)?.scrollIntoView({block: "nearest", behavior: "smooth"});
+  } else if (d.speak) {
+    const x = findBook(d.speak);
+    if (x) speak(`${x.title}. ${x.overview} ${x.cues.length ? "Memory cues: " + x.cues.join(". ") + "." : ""}`);
+  } else if (d.read) {
+    const x = findBook(d.read);
+    recallOpen.delete(d.read); stopSpeaking();
+    save("b:" + d.read, {choice: "read", title: x ? x.title : ""});
+  } else if (d.unread) {
+    recallOpen.delete(d.unread); stopSpeaking();
+    renderQueue(); toast("Kept in your queue");
+  } else if (d.undo) {
+    clearDecision("b:" + d.undo);
+  }
+});
+
+/* ---------- Watchlist ---------- */
+const LEVELS = {priority: "Alert me", wishlist: "Track quietly", none: "Stop watching"};
+function days(d) {
+  const n = Math.round((new Date(d) - new Date(TODAY)) / 864e5);
+  return n < 0 ? "out now" : n === 0 ? "today" : n === 1 ? "tomorrow" : n < 60 ? `in ${n} days` : `in ${Math.round(n / 30)} months`;
+}
+function watchCard(w) {
+  const lvl = decisions["w:" + w.key]?.level || w.level;
+  const nexts = w.next.length ? w.next.map(n => `<div class="nextbook"><span>Next: ${n.no ? "Book " + esc(n.no) + " · " : ""}<b>${esc(n.title)}</b></span>
+      <span class="d">${n.date ? esc(n.date) + " · " + days(n.date) : "no date yet"}</span></div>`).join("")
+    : `<div class="nextbook"><span class="sub">No next book announced</span></div>`;
+  const prog = `${w.read} of ${esc(w.total || "?")} read` + (w.avg ? ` · your avg ${w.avg}★` : "") + ` · ${esc(w.status)}`;
+  return `<li class="card">
+    <div class="ttl"><h3>${esc(w.series)}</h3><span class="badge ${lvl === "priority" ? "b-pri" : "b-track"}">${lvl === "priority" ? "Alerts" : lvl === "none" ? "Off" : "Tracked"}</span></div>
+    <div class="sub">${esc(w.author)}</div>
+    ${nexts}
+    <div class="meta"><span>${prog}</span></div>
+    ${w.notes ? `<p class="notes">${esc(w.notes)}</p>` : ""}
+    <div class="actions"><label class="sub" for="lv-${esc(w.key)}">Watch level</label>
+      <select id="lv-${esc(w.key)}" data-level="${esc(w.key)}">${Object.entries(LEVELS).map(([k, v]) => `<option value="${k}" ${k === lvl ? "selected" : ""}>${v}</option>`).join("")}</select>
+      ${lvl !== w.level ? '<span class="badge b-wish">Changed: Claude will update</span>' : ""}</div>
+  </li>`;
+}
+function renderWatch() {
+  const tl = DATA.timeline.filter(t => t.date >= TODAY.slice(0, 8) + "01");
+  const pri = DATA.watch.filter(w => w.level === "priority"), wl = DATA.watch.filter(w => w.level === "wishlist");
+  $("#n-watch").textContent = DATA.watch.length;
+  $("#p-watch").innerHTML = `
+    <div class="section-head"><h2>Coming up</h2><p class="hint">Dated releases in series you watch.</p></div>
+    ${tl.length ? `<div class="timeline">${tl.map(t => `<div class="tl ${esc(t.level)} ${t.date < TODAY ? "past" : ""}">
+      <span class="d">${esc(t.date)} · ${days(t.date)}</span><span class="t">${esc(t.title)}</span><span class="s">${esc(t.series)}</span></div>`).join("")}</div>` : '<p class="empty">No dated releases yet.</p>'}
+    <div class="section-head"><h2>Alert me</h2><p class="hint">News here opens a GitHub issue (monthly check).</p></div>
+    <ul class="list">${pri.map(watchCard).join("")}</ul>
+    <div class="section-head"><h2>Track quietly</h2><p class="hint">Shown here, with no alert.</p></div>
+    <ul class="list">${wl.map(watchCard).join("")}</ul>
+    ${DATA.worlds.length ? `<p class="hint">Finished series still watched for new books in the same world: ${DATA.worlds.map(esc).join(", ")}.</p>` : ""}`;
+}
+$("#p-watch").addEventListener("change", e => {
+  const s = e.target.closest("select[data-level]"); if (!s) return;
+  const w = DATA.watch.find(x => x.key === s.dataset.level);
+  s.value === w.level ? clearDecision("w:" + w.key) : save("w:" + w.key, {level: s.value});
+});
+
+/* ---------- Discover (suggestions) ---------- */
+const LENS = {"new-author": "New author, finished series", "my-author": "More from your authors", narrator: "Narrator pick", track: "Worth tracking (unfinished)"};
+const LENS_ALL = {"new-author": "New authors, finished series", "my-author": "More from your authors", narrator: "Narrator picks", track: "Worth tracking (unfinished)"};
+const CHOICES = [["want", "Want it", "want"], ["maybe", "Maybe", ""], ["no", "Not for me", "no"], ["read", "Already read", ""]];
+const AFTER = {want: "Added to your picks. Claude puts it on your wishlist next session", maybe: "Saved as a maybe", no: "Won't suggest it again", read: "Noted. Claude will ask for your rating"};
+let lensFilter = "all", choiceFilter = "open", browseOpen = false;
+let pickOffset = 0, deckOpen = false, deckIndex = 0, animateKey = "";
+try { lensFilter = localStorage.getItem("hub-lens") || "all"; } catch (e) {}
+
+const undecided = () => DATA.suggestions.filter(s => !decisions["s:" + s.key]);
+const deckList = () => undecided().sort((a, b) => ((+b.fit) - (+a.fit)) || a.series.localeCompare(b.series));
+function dayHash(str) { let h = 0; for (const c of str) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
+function tonightsPick() {
+  const open = undecided().sort((a, b) => a.key.localeCompare(b.key));
+  const best = open.filter(s => +s.fit >= 4);
+  const pool = best.length ? best : open;
+  return pool.length ? pool[(dayHash(TODAY) + pickOffset) % pool.length] : null;
+}
+const stars = avg => `<span class="stars" aria-hidden="true">${"★".repeat(Math.round(avg))}</span>`;
+
+function pitch(s, mode, label) {
+  const ch = decisions["s:" + s.key]?.choice;
+  const because = !s.because ? "" : s.because_avg
+    ? `<p class="because">Because you loved <b>${esc(s.because)}</b> ${stars(s.because_avg)} <span class="sub">you rated it ${s.because_avg}★</span></p>`
+    : `<p class="because">Because you read <b>${esc(s.because)}</b></p>`;
+  const facts = [`${esc(s.books)} book${s.books === "1" ? "" : "s"} · ${esc(s.series_status)}`, esc(s.subgenre), esc(s.span),
+    s.narrator && "🎧 " + esc(s.narrator),
+    s.audible_rating && `Audible ${esc(s.audible_rating)}★ · ${Number(s.audible_count).toLocaleString()} ratings`].filter(Boolean);
+  const btns = CHOICES.map(([k, txt, cls]) => `<button class="btn big ${k === "want" ? "primary" : cls}" data-s="${esc(s.key)}" data-c="${k}" aria-pressed="${ch === k}">${txt}</button>`).join("");
+  const extra = mode === "hero"
+    ? `<button class="btn big" data-another="1">Show me another</button>`
+    : `<button class="btn big" data-skip="${esc(s.key)}">Skip for now</button>`;
+  const enter = animateKey === mode + s.key ? " pitch-enter" : "";
+  return `<article class="pitch${mode === "deck" ? " deck" : ""}${enter}" style="--art:url('${esc(s.cover)}')" aria-label="${esc(s.series)}">
+    <div class="pitch-cover">${coverImg(s.cover, s.series)}</div>
+    <div class="pitch-body">
+      <div class="eyebrow">${label} · ${esc(LENS[s.lens] || s.lens)}</div>
+      <h2 class="pitch-title">${esc(s.series)}</h2>
+      <div class="sub">${esc(s.author)} · start with <b>${esc(s.first_title)}</b></div>
+      ${s.hook ? `<p class="hook">${esc(s.hook)}</p>` : ""}
+      ${because}
+      <div class="facts-row">${facts.map(f => `<span class="fact">${f}</span>`).join("")}</div>
+      <p class="small-why">${esc(s.why)}</p>
+      ${s.watch_out ? `<p class="warn">${esc(s.watch_out)}</p>` : ""}
+      <div class="actions">${btns}${extra}
+        ${s.audible ? `<span class="links"><a href="${esc(s.audible)}" target="_blank" rel="noopener">Listen to a sample on Audible</a></span>` : ""}</div>
+    </div></article>`;
+}
+function tile(attrs, cover, title, sub) {
+  return `<li><button class="tile" ${attrs}>${coverImg(cover, title)}<span class="tile-t">${esc(title)}</span>${sub ? `<span class="tile-s">${sub}</span>` : ""}</button></li>`;
+}
+function suggCard(s) {
+  const ch = decisions["s:" + s.key]?.choice;
+  const fit = +s.fit || 0;
+  return `<li class="card"><div class="row">
+    <div class="qcover">${coverImg(s.cover, s.series)}</div>
+    <div class="grow">
+      <div class="eyebrow">${esc(LENS_ALL[s.lens] || s.lens)}</div>
+      <div class="ttl"><h3>${esc(s.series)}</h3><span class="fit" title="Fit ${fit} of 5" aria-label="Fit ${fit} of 5">${"●".repeat(fit)}<span class="off">${"●".repeat(5 - fit)}</span></span></div>
+      <div class="sub">${esc(s.author)} · start with <b>${esc(s.first_title)}</b></div>
+      ${s.hook ? `<p class="why">${esc(s.hook)}</p>` : ""}
+      <div class="meta"><span>${esc(s.books)} book${s.books === "1" ? "" : "s"} · ${esc(s.series_status)}</span><span>${esc(s.subgenre)}</span>
+        ${s.narrator ? `<span>🎧 ${esc(s.narrator)}</span>` : ""}${s.audible_rating ? `<span>Audible ${esc(s.audible_rating)}★ (${Number(s.audible_count).toLocaleString()})</span>` : ""}</div>
+      <div class="actions">${CHOICES.map(([k, label, cls]) => `<button class="btn ${cls}" data-s="${esc(s.key)}" data-c="${k}" aria-pressed="${ch === k}">${label}</button>`).join("")}
+        <span class="links">${s.audible ? `<a href="${esc(s.audible)}" target="_blank" rel="noopener">Audible</a>` : ""}</span></div>
+    </div></div></li>`;
+}
+function renderDeck() {
+  const list = deckList();
+  deckIndex = Math.min(Math.max(deckIndex, 0), list.length - 1);
+  const s = list[deckIndex], done = DATA.suggestions.length - list.length;
+  $("#p-sugg").innerHTML = `
+    <div class="deckbar">
+      <button class="btn" data-close="1">← Back to Discover</button>
+      <span class="progress">${deckIndex + 1} of ${list.length} to go · ${done} decided</span>
+    </div>
+    <div class="pips" aria-hidden="true">${list.map((_, i) => `<i class="${i === deckIndex ? "on" : ""}"></i>`).join("")}</div>
+    ${pitch(s, "deck", "One at a time")}
+    <div class="deckbar"><button class="btn" data-prev="1">← Previous</button>
+      <span class="hint">Keys: ← previous · → skip · Esc back</span></div>`;
+  animateKey = "";
+}
+function renderSugg() {
+  const all = DATA.suggestions;
+  const open = undecided();
+  $("#n-sugg").textContent = open.length;
+  if (deckOpen && open.length) return renderDeck();
+  deckOpen = false;
+  const pick = tonightsPick();
+  const picks = all.filter(s => decisions["s:" + s.key]?.choice === "want");
+  const reading = DATA.queue.filter(q => q.tier === "reading");
+  const cont = reading.concat(queueOrder().filter(q => decisions["q:" + q.key]?.choice !== "later")).slice(0, 10);
+  const nextOf = q => [q.next, ...q.more].find(x => !isRead(x.id)) || q.next;
+  const byChoice = s => { const c = decisions["s:" + s.key]?.choice; return choiceFilter === "open" ? !c : choiceFilter === "all" ? true : c === choiceFilter; };
+  const shown = all.filter(s => (lensFilter === "all" || s.lens === lensFilter) && byChoice(s)).sort((a, b) => (+b.fit) - (+a.fit));
+  const chip = (group, val, label, cur) => `<button class="chip" data-${group}="${val}" aria-pressed="${cur === val}">${label}</button>`;
+  const count = c => all.filter(s => decisions["s:" + s.key]?.choice === c).length;
+  $("#p-sugg").innerHTML = `
+    ${pick ? pitch(pick, "hero", "Tonight's pick")
+      : `<div class="done-note"><h2>You've been through every suggestion</h2><p class="hint">Claude reads your picks next session and adds a fresh round in the groups you liked.</p></div>`}
+    ${open.length ? `<div class="section-head"><h2>New for you</h2>
+      <button class="btn" data-deck="">Go through all ${open.length}, one at a time →</button></div>
+      <ul class="shelf">${deckList().map(s => tile(`data-deck="${esc(s.key)}"`, s.cover, s.series, esc(s.author))).join("")}</ul>` : ""}
+    ${picks.length ? `<div class="section-head"><h2>Your picks</h2><p class="hint">Claude adds these to your wishlist next session.</p></div>
+      <ul class="shelf small">${picks.map(s => tile(`data-browse="want"`, s.cover, s.series, "start with " + esc(s.first_title))).join("")}</ul>` : ""}
+    <div class="section-head"><h2>Continue your series</h2><button class="btn" data-goto="queue">Open Up next →</button></div>
+    <ul class="shelf small">${cont.map(q => { const b = nextOf(q); return tile(`data-goto="queue"`, b.cover, q.standalone ? b.title : q.series, q.standalone ? esc(q.author) : "next: " + esc(b.title)); }).join("")}</ul>
+    <details class="browse" id="browse" ${browseOpen ? "open" : ""}><summary>All suggestions, with filters</summary>
+      <div class="panel">
+        <p class="hint">Change an earlier choice here. All pass the hard filters in your taste profile unless flagged.</p>
+        <div class="chips" role="group" aria-label="Group">${chip("lens", "all", "All", lensFilter)}${Object.entries(LENS_ALL).map(([k, v]) => chip("lens", k, v, lensFilter)).join("")}</div>
+        <div class="chips" role="group" aria-label="Your choice">${chip("ch", "open", `Not decided (${open.length})`, choiceFilter)}${chip("ch", "want", `Want (${count("want")})`, choiceFilter)}${chip("ch", "maybe", `Maybe (${count("maybe")})`, choiceFilter)}${chip("ch", "no", `Not for me (${count("no")})`, choiceFilter)}${chip("ch", "read", `Already read (${count("read")})`, choiceFilter)}${chip("ch", "all", "All", choiceFilter)}</div>
+        ${shown.length ? `<ul class="list">${shown.map(suggCard).join("")}</ul>` : '<p class="empty">Nothing here. Try another filter.</p>'}
+      </div></details>`;
+  animateKey = "";
+}
+function openDeck(key) {
+  const list = deckList();
+  deckOpen = true;
+  deckIndex = Math.max(0, list.findIndex(s => s.key === key));
+  animateKey = "deck" + (list[deckIndex]?.key || "");
+  renderSugg();
+  $("#p-sugg").scrollIntoView({block: "start", behavior: "smooth"});
+}
+function deckStep(d) {               // skip moves forward and wraps round to the start
+  const list = deckList();
+  if (!list.length) return;
+  deckIndex = (deckIndex + d + list.length) % list.length;
+  animateKey = "deck" + list[deckIndex].key;
+  renderSugg();
+}
+$("#p-sugg").addEventListener("toggle", e => { if (e.target.id === "browse") browseOpen = e.target.open; }, true);
+$("#p-sugg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const d = b.dataset;
+  if (d.lens) { lensFilter = d.lens; try { localStorage.setItem("hub-lens", lensFilter); } catch (e) {} renderSugg(); }
+  else if (d.ch) { choiceFilter = d.ch; renderSugg(); }
+  else if (d.s) {
+    const k = "s:" + d.s;
+    if (decisions[k]?.choice === d.c) { clearDecision(k); return; }
+    const inPitch = !!b.closest(".pitch");
+    if (inPitch && deckOpen) {
+      const next = deckList().filter(s => s.key !== d.s)[deckIndex];
+      animateKey = "deck" + (next?.key || "");
+    } else if (inPitch) {
+      decisions[k] = {choice: d.c};  // so the next pick is chosen without this one
+      const p = tonightsPick(); animateKey = p ? "hero" + p.key : "";
+    }
+    save(k, {choice: d.c}, AFTER[d.c]);
+  }
+  else if (d.another !== undefined) { pickOffset++; const p = tonightsPick(); animateKey = p ? "hero" + p.key : ""; renderSugg(); }
+  else if (d.deck !== undefined) openDeck(d.deck);
+  else if (d.skip) deckStep(1);
+  else if (d.prev) deckStep(-1);
+  else if (d.close) { deckOpen = false; renderSugg(); }
+  else if (d.goto) showTab(d.goto);
+  else if (d.browse) { choiceFilter = d.browse; browseOpen = true; renderSugg(); $("#browse")?.scrollIntoView({block: "start", behavior: "smooth"}); }
+});
+document.addEventListener("keydown", e => {
+  if (!deckOpen || $("#p-sugg").hidden || e.target.closest("input,select,textarea")) return;
+  if (e.key === "ArrowRight") deckStep(1);
+  else if (e.key === "ArrowLeft") deckStep(-1);
+  else if (e.key === "Escape") { deckOpen = false; renderSugg(); }
+});
+
+/* ---------- header + boot ---------- */
+function renderHeader() {
+  const nextRel = DATA.timeline.find(t => t.date >= TODAY);
+  $("#eyebrow").textContent = `Private · data as of ${DATA.built}`;
+  $("#facts").innerHTML = `<span><b>${DATA.counts.read}</b> read</span><span><b>${DATA.queue.length}</b> series/books queued</span>
+    <span><b>${DATA.watch.length}</b> series watched</span>${nextRel ? `<span>next release: <b>${esc(nextRel.title)}</b> ${days(nextRel.date)}</span>` : ""}
+    <span class="sync local" id="sync"><i></i> Connecting…</span>`;
+}
+function render() { renderQueue(); renderWatch(); renderSugg(); }
+
+renderHeader();
+render();
+try { const t = localStorage.getItem("hub-tab2"); if (TABS.includes(t)) showTab(t); } catch (e) {}
+(async () => {
+  try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch (e) { db = null; }
+  if (!db) { setMode("local"); return; }
+  setMode("on");
+  db.collection("decisions").onSnapshot(snap => {
+    for (const k of Object.keys(decisions)) delete decisions[k];
+    for (const d of snap.docs) if (d.exists) decisions[d.id] = d.data();
+    render();
+  }, () => setMode("local"));
+  db.doc("queue/order").onSnapshot(snap => {
+    savedOrder = snap.exists ? (snap.data().ids || null) : null;
+    render();
+  }, () => {});
+})();
+</script>

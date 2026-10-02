@@ -21,9 +21,10 @@ Update `HANDOFF.md` (current state, open questions, next steps, a one-line sessi
 - `data/series.csv` holds one row per series: counts, status, synopsis, and the owner's `watch` and `world` choices.
 - After any change to the CSVs, run `python scripts/build.py`. It validates the data and regenerates `library/*.md` and `wishlist/upcoming.md`. Never edit generated files by hand, and fix any WARN lines before committing.
 - Use only the approved subgenres and tags in `data/SCHEMA.md`. Changing either list needs the owner's approval.
-- `wishlist/recommendations.md` holds new books and authors Claude suggests. When one gets picked up, add it to `data/books.csv` and tick it off there.
+- `data/suggestions.csv` holds the books and series Claude suggests, and `data/book_overviews.csv` a spoiler-free overview for each unread book. Field rules for both are in `data/SCHEMA.md`.
 - `profile/taste-profile.md` holds likes, dislikes and the hard filters for recommendations. Refresh it when new ratings shift the picture.
 - `share/template.html` is the shareable bookshelf page. `python scripts/build_share.py` fills it from the CSVs and `config.json`, writing `share/bookshelf.html`.
+- `hub/template.html` is the owner's private Reading Hub (see below). `python scripts/build_hub.py` writes `hub/hub.html`, and `python scripts/fetch_covers.py` caches cover art in `hub/covers/`. Covers are git-ignored, because the art belongs to its publishers.
 - `archive/` holds imported source files. They're historical only, so don't edit them.
 
 ## Skills
@@ -35,7 +36,27 @@ When asked for wishlist ideas:
 - Read `profile/taste-profile.md` and apply its hard filters strictly.
 - Check the web for the current series status before calling a series finished or unreleased.
 - Check the owner's Audible store for an edition and narrator, and skip dramatized editions.
-- Add each pick to `wishlist/recommendations.md` with a one-line reason tied to books the owner rated highly.
+- Add each pick to `data/suggestions.csv` with every field filled, including a `hook` that sells the premise without spoilers and a `because` that names a series the owner rated highly.
+- Then run `python scripts/fetch_covers.py` and `python scripts/build_hub.py`, and republish the hub.
+
+## Reading Hub
+A private page with three tabs:
+- **Discover:** a daily "Tonight's pick", the suggestions one at a time, and cover shelves for new books, picks and series in progress.
+- **Up next:** one card per series with the next unread book, ranked (reading, started series by rating, owned, wishlist). The owner can reorder it, push a series down with "Not now", and use "Might have read this?" for a spoiler-free reminder.
+- **Watchlist:** dated releases on a timeline, and a watch level per series.
+
+Publish `hub/hub.html` as a private claude.ai artifact with the `db` capability (owner-only access), together with every `covers/*.jpg` as supporting files (`root` = `hub`). Save its URL as `hub_url` in `config.json`, and republish to that URL after any change to the CSVs. The owner's clicks are saved in the artifact's database. **At the start of every session, read them with ArtifactData and apply them:**
+
+| Document | Meaning | What to do |
+|---|---|---|
+| `decisions/s:<key>` = `want` | Wants the suggestion | Add it to `books.csv` as Wishlist, write an overview row, set the suggestion's `decision` to `picked` |
+| `decisions/s:<key>` = `no` | Not interested | Set the suggestion's `decision` to `rejected` |
+| `decisions/s:<key>` = `read` | Already read it | Ask for a rating, then add it as Read |
+| `decisions/w:<series_id>` | New watch level | Copy it into `series.csv` `watch` |
+| `decisions/b:<book id>` = `read` | Confirmed read via "Might have read this?" | Set the status to Read and ask for a rating |
+| `decisions/q:<key>` = `later`, `queue/order` | Queue order | No CSV change |
+
+Opened as a plain file (no artifact), the page still works, but choices only last until a reload.
 
 ## Conventions
 - **Status:** Read · Reading · Owned – Unread · Wishlist · Not Released · Dropped

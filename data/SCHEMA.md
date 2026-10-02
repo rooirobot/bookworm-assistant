@@ -62,3 +62,36 @@ One row per series, and one per standalone book. The Must know series are watche
 | `synopsis` | 2–3 sentences, spoiler-free (premise, world and lead as of book 1), in our own words and never a copied blurb |
 | `data_as_of` | Date the researched fields were checked |
 | `notes` | Free text, e.g. "5 published; 10 planned" |
+
+# Data schema: `data/suggestions.csv`
+
+Books and series Claude suggests, one row each. They show on the Reading Hub's Discover tab until the owner decides.
+
+| Field | Values / format |
+|---|---|
+| `key` | Slug, unique, e.g. `powder-mage` |
+| `lens` | `new-author` (new author, finished series) · `my-author` (more from an author the owner rated highly) · `narrator` (read by a narrator the owner loves) · `track` (worth tracking, but unfinished) |
+| `series`, `author`, `first_title` | What to start with |
+| `books`, `series_status`, `span` | Book count, `complete` / `ongoing` / `standalone`, and the years, e.g. `2014–2016` |
+| `subgenre` | From the subgenre list above |
+| `hook` | One spoiler-free line about the premise that makes you want to start it, in our own words, never a copied blurb |
+| `because` | One series the owner rated highly, spelled exactly as in `books.csv`. The hub shows the owner's average rating for it. |
+| `why` | One or two sentences on why it fits the owner's taste |
+| `watch_out` | Anything that might put the owner off (a slow first book, a dark turn, an unfinished series) |
+| `narrator`, `asin`, `audible_rating`, `audible_count` | The regular unabridged edition in the owner's Audible store |
+| `fit` | 1–5, how well it matches the taste profile |
+| `added` | Date added |
+| `decision` | Empty while open · `picked` (added to `books.csv`) · `rejected` |
+| `notes` | Free text |
+
+# Data schema: `data/book_overviews.csv`
+
+A spoiler-free overview for each unread book, used by the hub's "Might have read this?" button so the owner can check whether they've read a book without spoiling it.
+
+| Field | Values / format |
+|---|---|
+| `id` | The book's `id` in `books.csv` |
+| `overview` | One or two sentences on the premise, in our own words. No spoilers for this book; earlier books in the series may be referred to. |
+| `cues` | 3–4 memorable details (people, places, set pieces), `;`-separated |
+| `source` | Where the facts came from, e.g. "Own words, based on the Audible publisher summary" |
+| `data_as_of` | Date written |
