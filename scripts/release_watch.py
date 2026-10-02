@@ -74,19 +74,27 @@ def series_url(s, books):
     return s["goodreads_series_url"]
 
 
-def gr_series_books(url):
-    """Numbered main entries from a Goodreads series page: [(position, title, year or None)]."""
+def gr_series_books(url, our_name):
+    """Numbered main entries from a Goodreads series page: [(position, title, year or None)].
+    Each entry names its own series in brackets, e.g. "La torre blanca (La Rueda del Tiempo, #9)".
+    Translations and split editions name a different series there, so only entries whose
+    bracket name matches ours (or the page's own series name) are kept."""
     page = get(url)
+    h1 = re.search(r"<title>\s*(.*?)\s+Series by", page, re.S)
+    names = [our_name] + ([html.unescape(h1.group(1))] if h1 else [])
     out = []
     for m in re.finditer(r'data-react-class="ReactComponents.SeriesList" data-react-props="([^"]+)"', page):
         for e in json.loads(html.unescape(m.group(1))).get("series", []):
             b = e["book"]
-            pos = re.search(r"#(\d+)\)\s*$", b.get("title", ""))  # main books only, no x.5 novellas
-            if not pos or NOISE.search(b.get("title", "")):
+            # "(Series, #3)" or "(Series #3)"; main books only, no x.5 novellas
+            m2 = re.search(r"\(([^()]*?),?\s*#(\d+)\)\s*$", b.get("title", ""))
+            if not m2 or NOISE.search(b.get("title", "")):
                 continue
+            if not any(same_series(m2.group(1), n) for n in names):
+                continue  # translation or split edition
             title = re.sub(r"\s*\([^()]*#[\d.]+\)\s*$", "", b["title"]).strip()
             year = b.get("publicationDate")
-            out.append((pos.group(1), title, int(year) if str(year or "").isdigit() else None))
+            out.append((m2.group(2), title, int(year) if str(year or "").isdigit() else None))
     return out
 
 
@@ -150,7 +158,7 @@ def main():
         try:
             url = series_url(s, books) if CONFIG.get("goodreads") else ""
             if url:
-                for pos, title, year in gr_series_books(url):
+                for pos, title, year in gr_series_books(url, s["series"]):
                     # News only: announced (no year) or published this year or last. Older entries are
                     # translations, split editions or old gaps, not new releases.
                     if norm(title) in known_titles or (year and year < date.today().year - 1):
