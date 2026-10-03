@@ -36,7 +36,7 @@ When asked for wishlist ideas:
 - Read `profile/taste-profile.md` and apply its hard filters strictly.
 - Check the web for the current series status before calling a series finished or unreleased.
 - Check the owner's Audible store for an edition and narrator, and skip dramatized editions.
-- Add each pick to `data/suggestions.csv` with every field filled, including a `hook` that sells the premise without spoilers and a `because` that names a series the owner rated highly.
+- Add each pick to `data/suggestions.csv` with every field filled, including a `hook` that sells the premise without spoilers (write it from the publisher summary you fetched, never from memory: `lookup.py aud <asin>` or the catalog API with `response_groups=product_desc,product_extended_attrs`) and a `because` that names a series the owner rated highly.
 - Then run `python scripts/fetch_covers.py` and `python scripts/build_hub.py`, and republish the hub.
 
 ## Reading Hub
